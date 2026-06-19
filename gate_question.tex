@@ -3,41 +3,22 @@
 \usepackage[margin=0.4in]{geometry}
 \usepackage{amsmath}
 \usepackage{booktabs}
-\usepackage{listings}
 \usepackage{xcolor}
 \usepackage{multicol}
 \usepackage{graphicx}
 \usepackage{array}
+\usepackage{tabularx} 
+\usepackage{hyperref}  
 
-% Code highlighting configuration
-\definecolor{mDarkTeal}{rgb}{0.0, 0.4, 0.4}
-\definecolor{mGray}{rgb}{0.5,0.5,0.5}
-\definecolor{mPurple}{rgb}{0.58,0,0.82}
-\definecolor{backgroundHex}{rgb}{0.97,0.97,0.97}
-
-\lstset{
-    backgroundcolor=\color{backgroundHex},   
-    commentstyle=\color{mDarkTeal}\itshape,
-    keywordstyle=\color{magenta},
-    numberstyle=\tiny\color{mGray},
-    stringstyle=\color{mPurple},
-    basicstyle=\ttfamily\scriptsize,
-    breakatwhitespace=false,         
-    breaklines=true,                 
-    captionpos=b,                    
-    keepspaces=true,                 
-    numbers=none,                    
-    showspaces=false,                
-    showstringspaces=false,
-    showtabs=false,                  
-    tabsize=2,
-    frame=single,
-    aboveskip=6pt,
-    %belowskip=2pt
+% Hyperref configuration
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
 }
 
-\title{\vspace{-0.6in}\textbf{GATE Question Analysis \& Hardware Implementation: Full Adder}\vspace{-0.6in}}
-%\author{\textbf{Technical Documentation Lab Reference}}
+\title{\vspace{-0.7in}\textbf{GATE Question Analysis \& Hardware Implementation: Full Adder}\vspace{-0.5in}}
 \date{}
 
 \begin{document}
@@ -45,30 +26,20 @@
 \maketitle
 \thispagestyle{empty}
 
-% --- FULL WIDTH SECTION: QUESTION ---
+% --- FULL QUESTION ---
 \noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
 \subsection*{The GATE Question}
-\noindent Fig. 1 shows the $i^{th}$ full-adder block of a binary adder circuit. $C_i$ is the input carry and $C_{i+1}$ is the output carry of the circuit. If the inputs $A_i, B_i$ are available and stable throughout the carry propagation, find the outputs $S_i$ and $C_{i+1}$.
+\noindent Fig.1 shows the $i^{th}$ full-adder block of a binary adder circuit. $C_i$ is the input carry and $C_{i+1}$ is the output carry of the circuit. If the inputs $A_i, B_i$ are available and stable throughout the carry propagation, find the outputs $S_i$ and $C_{i+1}$.
 
 \begin{figure}[h!]
     \centering
-    % If you have the image saved locally as an image file (e.g., gate_circuit.png), 
-    % uncomment the line below and add your filename:
-     \includegraphics[width=0.45\textwidth]{fa1.png}
-    
-    % This acts as a perfect visual placeholder matching your page layout requirements:
-    %\framebox{\begin{minipage}{0.45\textwidth}
-        \centering\vspace{0.15in}
-        %\textbf{Fig. 3.13: Full Adder Logic Circuit Diagram} \\
-        %\small Inputs: $A_i, B_i, C_i$ \ \ \textbar \ \ Outputs: $S_i, C_{i+1}$ \\
-        \vspace{0.0000001in}
-    %\end{minipage}}
+    \includegraphics[width=0.3\textwidth]{q13.png}
 \end{figure}
 \noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}
 
 \vspace{0.05in}
 
-% --- TWO COLUMN SECTION: SOLUTION & LAB DATA ---
+% --- TWO COLUMN SECTION: SOLUTION, LAB DATA & REPOSITORY LINKS ---
 \begin{multicols}{2}
 
 \section{Circuit Analytical Solution}
@@ -76,7 +47,7 @@ The given logical architecture is a classic standard Full Adder. By tracing the 
 \begin{align*}
 S_i &= A_i \oplus B_i \oplus C_i \\
 C_{i+1} &= (A_i \cdot B_i) + (B_i \cdot C_i) + (A_i \cdot C_i)
-\end{align*}
+\end{align}
 
 \section{Laboratory Components Used}
 \begin{itemize}
@@ -92,7 +63,7 @@ C_{i+1} &= (A_i \cdot B_i) + (B_i \cdot C_i) + (A_i \cdot C_i)
 \begin{itemize}
     \setlength{\itemsep}{0pt}
     \item \textbf{Inputs:} $A_i \rightarrow$ Pin 2, $B_i \rightarrow$ Pin 3, $C_i \rightarrow$ Pin 4. All pins are bridged to \textbf{GND} via buttons using internal pull-up logic.
-    \item \textbf{Outputs:} $S_i \rightarrow$ Pin 8 $\rightarrow 220\Omega \rightarrow$ Red LED. \\ $C_{i+1} \rightarrow$ Pin 9 $\rightarrow 220\Omega \rightarrow$ Green LED.
+    \item \textbf{Outputs:} $S_i \rightarrow$ Pin 8 $\rightarrow 220\Omega \rightarrow$ Red LED. \\ $C_{i+1} \rightarrow$ Pin 9 $\rightarrow 220\Omega \rightarrow$ Red LED.
 \end{itemize}
 
 \vfill\columnbreak
@@ -115,84 +86,30 @@ $\mathbf{A_i}$ & $\mathbf{B_i}$ & $\mathbf{C_i}$ & \textbf{Sum ($\mathbf{S_i}$)}
 \bottomrule
 \end{tabular}
 
-\end{multicols}
+\vspace{0.15in}
+\raggedright
 
-\vspace{-0.8in}
-\pagebreak
+\section{Arduino Embedded C++ Code}
+The firmware code for the digital logical execution environment implemented on the ATmega328P microcontroller can be viewed below:
 
-\setlength{\columnsep}{0.9cm}
+\vspace{0.05in}
+\noindent
+\begin{tabularx}{\linewidth}{|X|}
+\hline
+\url{https://github.com/Anshita9/internship/blob/main/gate_question.ino} \\
+\hline
+\end{tabularx}
 
-\begin{multicols}{2}
+\section{AVR Assembly Firmware Code}
+The low-level direct register manipulation and instruction optimization variant for hardware tracking is hosted below:
 
-\section{Arduino Embedded Cpp Sketch}
-\begin{lstlisting}[language=C++]
-const int pinA = 2, pinB = 3, pinCin = 4;
-const int pinSum = 8, pinCout = 9;
-
-void setup() {
-  pinMode(pinA, INPUT_PULLUP);
-  pinMode(pinB, INPUT_PULLUP);
-  pinMode(pinCin, INPUT_PULLUP);
-  pinMode(pinSum, OUTPUT);
-  pinMode(pinCout, OUTPUT);
-}
-
-void loop() {
-  // Read and invert for active-low buttons
-  int A = !digitalRead(pinA);
-  int B = !digitalRead(pinB);
-  int Cin = !digitalRead(pinCin);
-
-  // Digital execution
-  int sum = A ^ B ^ Cin; 
-  int cout = (A&&B) || (B&&Cin) || (A&&Cin);
-
-  digitalWrite(pinSum, sum);
-  digitalWrite(pinCout, cout);
-  delay(50);
-}
-\end{lstlisting}
-
-\vfill\columnbreak
-
-\section{Assembly Language}
-\begin{lstlisting}[language=Verilog]
-; Target Register & I/O Address Definitions
-.device ATmega328P
-.equ DDRD=0x0A  \ \ .equ PORTD=0x0B  \ \ .equ PIND=0x09
-.equ DDRB=0x04  \ \ .equ PORTB=0x05
-
-setup:
-    cbi DDRD,2 \ \ cbi DDRD,3 \ \ cbi DDRD,4
-    sbi PORTD,2 \ sbi PORTD,3 \ sbi PORTD,4
-    sbi DDRB,0 \ \ sbi DDRB,1
-
-loop:
-    in   r16, PIND
-    com  r16          ; Handle pull-up state
-    
-    mov  r17, r16     ; Isolate A
-    lsr  r17 \ lsr r17 \ andi r17, 0x01
-    
-    mov  r18, r16     ; Isolate B
-    lsr  r18 \ lsr r18 \ lsr r18 \ andi r18, 0x01
-    
-    mov  r19, r16     ; Isolate Cin
-    lsr  r19 \ lsr r19 \ lsr r19 \ lsr r19 \ andi r19, 0x01
-
-    mov  r20, r17     ; XOR Logic for Sum
-    eor  r20, r18 \ eor r20, r19
-
-    mov  r21, r17 \ and r21, r18  ; A & B
-    mov  r22, r18 \ and r22, r19  ; B & Cin
-    mov  r23, r17 \ and r23, r19  ; A & Cin
-    or   r21, r22 \ or  r21, r23  ; Carry logic
-
-    lsl  r21          ; Position Cout to PB1
-    or   r20, r21     ; Complete Output Pack
-    out  PORTB, r20   ; Drive System LEDs
-    rjmp loop
-\end{lstlisting}
+\vspace{0.05in}
+\noindent
+\begin{tabularx}{\linewidth}{|X|}
+\hline
+\url{https://github.com/Anshita9/internship/blob/main/gate_question.asm} \\
+\hline
+\end{tabularx}
 
 \end{multicols}
 
