@@ -46,6 +46,7 @@ void handle_key_press(int key_index) {
 
     const char* key_str = (current_mode == 1) ? keypad_mode_1[row][col] : keypad_mode_2[row][col];
 
+    // 1. HANDLE CLEAR
     if (strcmp(key_str, "Clear") == 0) {
         buffer_index = 0;
         expression_buffer[0] = '\0';
@@ -56,33 +57,77 @@ void handle_key_press(int key_index) {
         return;
     }
 
+    // 2. FIX: SMART BACKSPACE (Handles multi-character words like "sin", "log10")
     if (strcmp(key_str, "Backspace") == 0) {
         if (buffer_index > 0) {
-            buffer_index--;
+            // Check all potential multi-char tokens from both modes to see if our buffer ends with one
+            int token_removed = 0;
+            
+            // Loop through both keypad maps to check if a token matches the end of our current buffer string
+            for (int r = 0; r < KEYPAD_ROWS; r++) {
+                for (int c = 0; c < KEYPAD_COLS; c++) {
+                    const char* tok1 = keypad_mode_1[r][c];
+                    const char* tok2 = keypad_mode_2[r][c];
+                    
+                    // Skip functional system command strings
+                    if (strcmp(tok1, "Clear") == 0 || strcmp(tok1, "Backspace") == 0 || strcmp(tok1, "Mode") == 0 || strcmp(tok1, "=") == 0) continue;
+
+                    int len1 = strlen(tok1);
+                    if (buffer_index >= len1 && strcmp(&expression_buffer[buffer_index - len1], tok1) == 0) {
+                        buffer_index -= len1;
+                        token_removed = 1;
+                        break;
+                    }
+                    
+                    int len2 = strlen(tok2);
+                    if (buffer_index >= len2 && strcmp(&expression_buffer[buffer_index - len2], tok2) == 0) {
+                        buffer_index -= len2;
+                        token_removed = 1;
+                        break;
+                    }
+                }
+                if (token_removed) break;
+            }
+
+            // Fallback: If no macro string matched, delete exactly 1 single standard character
+            if (!token_removed) {
+                buffer_index--;
+            }
+
             expression_buffer[buffer_index] = '\0';
             lcd_clear();
-            lcd_print(expression_buffer);
+            
+            // If the string is not completely empty, show remaining expression
+            if (buffer_index > 0) {
+                lcd_print(expression_buffer);
+            }
         }
         return;
     }
 
+    // 3. HANDLE MODE CHANGE
     if (strcmp(key_str, "Mode") == 0) {
         current_mode = (current_mode == 1) ? 2 : 1;
         lcd_clear();
         lcd_print("Mode Changed");
         delay_ms(500);
         lcd_clear();
+        // Redisplay current working expression after the notification fades
+        if (buffer_index > 0) {
+            lcd_print(expression_buffer);
+        }
         return;
     }
 
+    // 4. HANDLE EVALUATION
     if (strcmp(key_str, "=") == 0) {
         char result[32];
         compute(expression_buffer, 0, 0, 0, result);
 
         lcd_clear();
-        lcd_set_cursor(0,0);
+        lcd_set_cursor(0, 0);
         lcd_print(expression_buffer);
-        lcd_set_cursor(1,0);
+        lcd_set_cursor(1, 0);
         lcd_print(result);
 
         buffer_index = 0;
@@ -90,6 +135,7 @@ void handle_key_press(int key_index) {
         return;
     }
 
+    // 5. HANDLE CHARACTER APPEND
     append_char(key_str);
     lcd_clear();
     lcd_print(expression_buffer);
@@ -107,6 +153,9 @@ int main(void) {
 
     while (1) {
         int key = keypad_scan();
-        handle_key_press(key);
+        // Only trigger evaluation if a valid key coordinate is pressed
+        if (key >= 0) {
+            handle_key_press(key);
+        }
     }
 }
