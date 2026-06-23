@@ -7,6 +7,7 @@
 #define MAX 40
 #define TOKEN_SIZE 16
 
+
 // ---------------- STACKS ----------------
 
 typedef struct {
@@ -14,243 +15,455 @@ typedef struct {
     int top;
 } S_Str;
 
+
 typedef struct {
     double data[MAX];
     int top;
 } S_Dbl;
 
-void push_s(S_Str *s, const char *v) {
-    if (s->top >= MAX - 1) return;
+
+
+void push_s(S_Str *s, const char *v)
+{
+    if (s->top >= MAX-1) return;
     strcpy(s->data[++s->top], v);
 }
 
-char* pop_s(S_Str *s) {
-    if (s->top < 0) return "";
+
+char* pop_s(S_Str *s)
+{
+    if(s->top < 0) return "";
     return s->data[s->top--];
 }
 
-char* peek_s(S_Str *s) {
-    if (s->top < 0) return "";
+
+char* peek_s(S_Str *s)
+{
+    if(s->top < 0) return "";
     return s->data[s->top];
 }
 
-void push_d(S_Dbl *s, double v) {
-    if (s->top >= MAX - 1) return;
-    s->data[++s->top] = v;
+
+
+void push_d(S_Dbl *s,double v)
+{
+    if(s->top >= MAX-1) return;
+    s->data[++s->top]=v;
 }
 
-double pop_d(S_Dbl *s) {
-    if (s->top < 0) return 0.0;
+
+double pop_d(S_Dbl *s)
+{
+    if(s->top < 0) return 0.0;
     return s->data[s->top--];
 }
 
+
+
 // ---------------- HELPERS ----------------
 
-int is_op(const char *t) {
-    return (!strcmp(t, "+") || !strcmp(t, "-") || !strcmp(t, "*") || 
-            !strcmp(t, "/") || !strcmp(t, "^") || !strcmp(t, "!"));
+
+int is_op(const char *t)
+{
+    return (!strcmp(t,"+") ||
+            !strcmp(t,"-") ||
+            !strcmp(t,"*") ||
+            !strcmp(t,"/") ||
+            !strcmp(t,"^") ||
+            !strcmp(t,"!"));
 }
 
-int is_func(const char *t) {
-    return (!strcmp(t, "sin") || !strcmp(t, "cos") || !strcmp(t, "tan") || 
-            !strcmp(t, "ln") || !strcmp(t, "sqrt") || !strcmp(t, "fact") || 
-            !strcmp(t, "exp") || !strcmp(t, "log10") || !strcmp(t, "asin") || 
-            !strcmp(t, "acos") || !strcmp(t, "atan") || !strcmp(t, "mod"));
+
+
+int is_func(const char *t)
+{
+    return (!strcmp(t,"sin") ||
+            !strcmp(t,"cos") ||
+            !strcmp(t,"tan") ||
+            !strcmp(t,"ln") ||
+            !strcmp(t,"sqrt") ||
+            !strcmp(t,"fact") ||
+            !strcmp(t,"exp") ||
+            !strcmp(t,"log10") ||
+            !strcmp(t,"asin") ||
+            !strcmp(t,"acos") ||
+            !strcmp(t,"atan") ||
+            !strcmp(t,"mod"));
 }
 
-int prec(const char *op) {
-    if (!strcmp(op, "!")) return 5;
-    if (!strcmp(op, "^")) return 4;
-    if (!strcmp(op, "*") || !strcmp(op, "/")) return 3;
-    if (!strcmp(op, "+") || !strcmp(op, "-")) return 2;
+
+
+int prec(const char *op)
+{
+    if(!strcmp(op,"!")) return 5;
+    if(!strcmp(op,"^")) return 4;
+    if(!strcmp(op,"*") || !strcmp(op,"/")) return 3;
+    if(!strcmp(op,"+") || !strcmp(op,"-")) return 2;
+
     return 0;
 }
 
-// ---------------- FIXED TOKENIZER ----------------
-void tokenize(char *in, char *out) {
-    int j = 0;
-    int len = strlen(in);
 
-    for (int i = 0; i < len; i++) {
-        char c = in[i];
 
-        if (isspace((unsigned char)c)) {
-            continue;
+// ---------------- TOKENIZER ----------------
+//
+// sin7  -> sin 7
+// cos45 -> cos 45
+// ln10  -> ln 10
+//
+
+void tokenize(char *in,char *out)
+{
+
+    int j=0;
+
+
+    for(int i=0; in[i]!='\0' && j<MAX*10-2; i++)
+    {
+
+        char c=in[i];
+
+
+        // operators and brackets
+        if(strchr("()+-*/^!",c))
+        {
+            out[j++]=' ';
+            out[j++]=c;
+            out[j++]=' ';
         }
 
-        // Handle operators and brackets
-        if (strchr("()+-*/^!", c)) {
-            out[j++] = ' ';
-            out[j++] = c;
-            out[j++] = ' ';
-        }
-        // Handle functions or constants (like pi)
-        else if (isalpha((unsigned char)c)) {
-            out[j++] = ' ';
-            while (i < len && isalpha((unsigned char)in[i])) {
-                out[j++] = in[i++];
+
+
+        // functions
+        else if(isalpha(c))
+        {
+
+            out[j++]=' ';
+
+
+            while(isalpha(in[i]))
+            {
+                out[j++]=in[i++];
             }
+
+
             i--;
-            out[j++] = ' ';
+
+
+            out[j++]=' ';
         }
-        // Handle numbers including floating points
-        else if (isdigit((unsigned char)c) || c == '.') {
-            // Note: Don't insert space inside the digits of a float string
-            while (i < len && (isdigit((unsigned char)in[i]) || in[i] == '.')) {
-                out[j++] = in[i++];
-            }
-            i--;
-            out[j++] = ' ';
+
+
+
+        // numbers
+        else
+        {
+            out[j++]=c;
         }
+
     }
-    out[j] = '\0';
+
+
+    out[j]='\0';
+
 }
+
+
 
 // ---------------- SHUNTING YARD ----------------
-void shunt(char *input, char output[MAX][TOKEN_SIZE], int *out_len) {
+
+
+void shunt(char *input,
+           char output[MAX][TOKEN_SIZE],
+           int *out_len)
+{
+
     S_Str ops;
-    ops.top = -1;
 
-    char expr[MAX * 10];
-    tokenize(input, expr);
+    ops.top=-1;
 
-    char *token = strtok(expr, " \t\n");
-    *out_len = 0;
-    
-    char last_token[TOKEN_SIZE] = "";
 
-    while (token) {
-        // FIX: Enhanced validation for negative numbers vs subtraction operator
-        int is_negative_num = 0;
-        if (!strcmp(token, "-")) {
-            // If '-' is at the beginning, or follows an operator/opening parenthesis, it is a unary negative sign
-            if (*out_len == 0 || is_op(last_token) || !strcmp(last_token, "(")) {
-                is_negative_num = 1;
-            }
+    char expr[MAX*10];
+
+
+    tokenize(input,expr);
+
+
+
+    char *token=strtok(expr," \t\n");
+
+    *out_len=0;
+
+
+
+    while(token)
+    {
+
+
+        // number
+        if(isdigit(token[0]) ||
+          (token[0]=='-' && isdigit(token[1])))
+        {
+
+            strcpy(output[(*out_len)++],token);
+
         }
 
-        // Number token handling (including explicit unary negatives)
-        if (isdigit((unsigned char)token[0]) || (token[0] == '-' && isdigit((unsigned char)token[1])) || is_negative_num) {
-            if (is_negative_num) {
-                // Fetch the next part to bind the negative symbol to the actual value
-                char *next_part = strtok(NULL, " \t\n");
-                if (next_part) {
-                    char neg_buffer[TOKEN_SIZE];
-                    snprintf(neg_buffer, sizeof(neg_buffer), "-%s", next_part);
-                    strcpy(output[(*out_len)++], neg_buffer);
-                    strcpy(last_token, neg_buffer);
-                }
-            } else {
-                strcpy(output[(*out_len)++], token);
-                strcpy(last_token, token);
-            }
+
+        // function or (
+        else if(is_func(token) ||
+                !strcmp(token,"("))
+        {
+
+            push_s(&ops,token);
+
         }
-        // Constants tracking (Fixes Keypad "pi" omission)
-        else if (!strcmp(token, "pi")) {
-            strcpy(output[(*out_len)++], "3.141592653589793");
-            strcpy(last_token, token);
-        }
-        // Function or (
-        else if (is_func(token) || !strcmp(token, "(")) {
-            push_s(&ops, token);
-            strcpy(last_token, token);
-        }
+
+
         // )
-        else if (!strcmp(token, ")")) {
-            while (ops.top >= 0 && strcmp(peek_s(&ops), "(")) {
-                strcpy(output[(*out_len)++], pop_s(&ops));
-            }
-            if (ops.top >= 0) pop_s(&ops); // Remove '('
+        else if(!strcmp(token,")"))
+        {
 
-            if (ops.top >= 0 && is_func(peek_s(&ops))) {
-                strcpy(output[(*out_len)++], pop_s(&ops));
+            while(ops.top>=0 &&
+                 strcmp(peek_s(&ops),"("))
+            {
+                strcpy(output[(*out_len)++],
+                       pop_s(&ops));
             }
-            strcpy(last_token, token);
-        }
-        // Operators
-        else {
-            while (ops.top >= 0 && prec(peek_s(&ops)) >= prec(token)) {
-                strcpy(output[(*out_len)++], pop_s(&ops));
+
+
+            if(ops.top>=0)
+                pop_s(&ops);
+
+
+
+            if(ops.top>=0 &&
+               is_func(peek_s(&ops)))
+            {
+                strcpy(output[(*out_len)++],
+                       pop_s(&ops));
             }
-            push_s(&ops, token);
-            strcpy(last_token, token);
+
         }
 
-        token = strtok(NULL, " \t\n");
+
+
+        // operators
+        else
+        {
+
+            while(ops.top>=0 &&
+             prec(peek_s(&ops))>=prec(token))
+            {
+                strcpy(output[(*out_len)++],
+                       pop_s(&ops));
+            }
+
+
+            push_s(&ops,token);
+
+        }
+
+
+
+        token=strtok(NULL," \t\n");
+
     }
 
-    while (ops.top >= 0) {
-        strcpy(output[(*out_len)++], pop_s(&ops));
+
+
+    while(ops.top>=0)
+    {
+        strcpy(output[(*out_len)++],
+               pop_s(&ops));
     }
+
 }
+
+
 
 // ---------------- RPN EVALUATION ----------------
-double eval_rpn(char rpn[MAX][TOKEN_SIZE], int n, double x) {
+
+
+double eval_rpn(char rpn[MAX][TOKEN_SIZE],
+                int n,
+                double x)
+{
+
     S_Dbl st;
-    st.top = -1;
 
-    for (int i = 0; i < n; i++) {
-        char *t = rpn[i];
+    st.top=-1;
 
-        if (isdigit((unsigned char)t[0]) || (t[0] == '-' && isdigit((unsigned char)t[1]))) {
-            push_d(&st, atof(t));
-        } 
-        else if (is_op(t)) {
-            if (!strcmp(t, "!")) {
-                double a = pop_d(&st);
-                push_d(&st, m_fact(a));
-            } else {
-                double b = pop_d(&st);
-                double a = pop_d(&st);
 
-                if (!strcmp(t, "+")) push_d(&st, a + b);
-                else if (!strcmp(t, "-")) push_d(&st, a - b);
-                else if (!strcmp(t, "*")) push_d(&st, a * b);
-                else if (!strcmp(t, "/")) push_d(&st, b ? a / b : 0);
-                else if (!strcmp(t, "^")) push_d(&st, m_pow(a, b));
-            }
-        } 
-        else if (is_func(t)) {
-            double a = pop_d(&st);
 
-            if (!strcmp(t, "sin")) push_d(&st, m_sin(a));
-            else if (!strcmp(t, "cos")) push_d(&st, m_cos(a));
-            else if (!strcmp(t, "tan")) push_d(&st, m_tan(a));
-            else if (!strcmp(t, "ln")) push_d(&st, m_ln(a));
-            else if (!strcmp(t, "sqrt")) push_d(&st, m_sqrt(a));
-            else if (!strcmp(t, "fact")) push_d(&st, m_fact(a));
-            else if (!strcmp(t, "exp")) push_d(&st, m_exp(a));
-            else if (!strcmp(t, "log10")) push_d(&st, m_log10(a));
-            else if (!strcmp(t, "asin")) push_d(&st, m_asin(a));
-            else if (!strcmp(t, "acos")) push_d(&st, m_acos(a));
-            else if (!strcmp(t, "atan")) push_d(&st, m_atan(a));
-            else if (!strcmp(t, "mod")) push_d(&st, m_abs(a));
+    for(int i=0;i<n;i++)
+    {
+
+        char *t=rpn[i];
+
+
+
+        if(isdigit(t[0]) ||
+          (t[0]=='-' && isdigit(t[1])))
+        {
+
+            push_d(&st,atof(t));
+
         }
+
+
+
+        else if(is_op(t))
+        {
+
+            if(!strcmp(t,"!"))
+            {
+                double a=pop_d(&st);
+                push_d(&st,m_fact(a));
+            }
+
+
+            else
+            {
+
+                double b=pop_d(&st);
+                double a=pop_d(&st);
+
+
+                if(!strcmp(t,"+"))
+                    push_d(&st,a+b);
+
+                else if(!strcmp(t,"-"))
+                    push_d(&st,a-b);
+
+                else if(!strcmp(t,"*"))
+                    push_d(&st,a*b);
+
+                else if(!strcmp(t,"/"))
+                    push_d(&st,b?a/b:0);
+
+                else if(!strcmp(t,"^"))
+                    push_d(&st,m_pow(a,b));
+
+            }
+
+        }
+
+
+
+        else if(is_func(t))
+        {
+
+            double a=pop_d(&st);
+
+
+
+            if(!strcmp(t,"sin"))
+                push_d(&st,m_sin(a));
+
+            else if(!strcmp(t,"cos"))
+                push_d(&st,m_cos(a));
+
+            else if(!strcmp(t,"tan"))
+                push_d(&st,m_tan(a));
+
+            else if(!strcmp(t,"ln"))
+                push_d(&st,m_ln(a));
+
+            else if(!strcmp(t,"sqrt"))
+                push_d(&st,m_sqrt(a));
+
+            else if(!strcmp(t,"fact"))
+                push_d(&st,m_fact(a));
+
+            else if(!strcmp(t,"exp"))
+                push_d(&st,m_exp(a));
+
+            else if(!strcmp(t,"log10"))
+                push_d(&st,m_log10(a));
+
+            else if(!strcmp(t,"asin"))
+                push_d(&st,m_asin(a));
+
+            else if(!strcmp(t,"acos"))
+                push_d(&st,m_acos(a));
+
+            else if(!strcmp(t,"atan"))
+                push_d(&st,m_atan(a));
+
+            else if(!strcmp(t,"mod"))
+                push_d(&st,m_abs(a));
+
+        }
+
     }
+
+
     return pop_d(&st);
+
 }
 
+
+
 // ---------------- MAIN API ----------------
-void compute(const char *input, double start, double end, double step, char *output) {
+
+
+void compute(const char *input,
+             double start,
+             double end,
+             double step,
+             char *output)
+{
+
+
     char rpn[MAX][TOKEN_SIZE];
-    int n = 0;
 
-    shunt((char*)input, rpn, &n);
-    output[0] = '\0';
+    int n=0;
 
-    if (step <= 0 || m_abs(end - start) < 1e-9) {
-        double res = eval_rpn(rpn, n, start);
-        sprintf(output, "%.6f", res);
-    } else {
-        char line[64];
-        double t = start;
-        int safety = 0;
 
-        while (t <= end + 1e-9 && safety++ < 2000) {
-            double res = eval_rpn(rpn, n, t);
-            sprintf(line, "%.4f,%.4f\n", t, res);
-            strcat(output, line);
-            t += step;
-        }
+
+    shunt((char*)input,rpn,&n);
+
+
+
+    output[0]='\0';
+
+
+
+    if(step<=0 || m_abs(end-start)<1e-9)
+    {
+
+        double res=eval_rpn(rpn,n,start);
+
+        sprintf(output,"%.6f",res);
+
     }
+
+
+    else
+    {
+
+        char line[64];
+
+        double t=start;
+
+        int safety=0;
+
+
+
+        while(t<=end+1e-9 && safety++<2000)
+        {
+
+            double res=eval_rpn(rpn,n,t);
+
+            sprintf(line,"%.4f,%.4f\n",
+                    t,res);
+
+            strcat(output,line);
+
+            t+=step;
+        }
+
+    }
+
 }
