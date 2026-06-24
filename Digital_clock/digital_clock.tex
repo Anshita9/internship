@@ -1,0 +1,190 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Custom Colors 
+\definecolor{darkblue}{rgb}{0.0, 0.2, 0.4}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkblue,
+    filecolor=magenta,      
+    urlcolor=darkblue,
+    pdftitle={Digital Clock Project Documentation},
+}
+
+% Title Formatting
+\titleformat{\section}{\large\bfseries\color{darkblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{darkblue}}{\thesubsection}{1em}{}
+
+\begin{document}
+
+% --- PAGE 1: TITLE PAGE ---
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Huge \bfseries \color{darkblue} Design and Implementation of a \\ Custom Digital Clock}\\[1.5cm]
+    {\large \bfseries Technical Documentation \& Build Report}\\[3cm]
+    
+    \vfill
+    {\large \bfseries Prepared by:}\\[0.2cm]
+    {\large Anshita}\\[1cm]
+    {\large \today}
+\end{titlepage}
+
+\newpage
+
+% --- PAGE 2: INDEX (TABLE OF CONTENTS) ---
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+
+% --- PAGE 3+: DOCUMENT CONTENT ---
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\section{Project Approach}
+This document details the complete engineering workflow for designing, prototyping, and manufacturing an autonomous digital clock. The development process followed a strict iterative hardware verification path:
+\begin{enumerate}
+    \item \textbf{Breadboard Prototyping:} Validating system schematics and firmware using an Arduino Uno.
+    \item \textbf{Standalone Integrated Circuit Conversion:} Flashing the ATmega328P microcontroller with a bootloader to run independently of the Arduino development board.
+    \item \textbf{Permanent Hardware Assembly:} Translating the breadboard circuit onto a permanent perfboard via discrete soldering and structured backside wire routing.
+    \item \textbf{Enclosure Industrial Design:} Creating a custom 3D-printed clock chassis using Computer-Aided Design (CAD).
+\end{enumerate}
+
+\section{Components Required}
+Below is the Bill of Materials (BOM) necessary for the replication of this system:
+\begin{itemize}
+    \item Microcontroller: ATmega328P-PU IC
+    \item Development Platform: Arduino Uno (for initial validation and ISP flashing)
+    \item Clock Source: 16 MHz Crystal Oscillator \& 22pF Ceramic Capacitors (x2)
+    \item Prototyping Medium: Breadboard, Perfboard, and Premium Jumper Wires
+    \item Power Supply: 5V DC Regulator (e.g., LM7805) or Direct USB Power
+    \item Enclosure Material: PLA / PETG Filament for 3D Printing
+    \item Miscellaneous Hardware: Resistors, Pull-up Resistors (10k$\Omega$ for Reset Line), Push-buttons, and Soldering Consumables
+\end{itemize}
+
+\section{Breadboard Prototyping \& Functional Verification}
+Before committing to permanent hardware assembly, the circuit was constructed on a standard breadboard using an Arduino Uno. This phase focused on verifying:
+\begin{itemize}
+    \item Pin mapping interfaces between the microcontroller code and external peripherals.
+    \item Proper electrical isolation and functional signal paths.
+    \item Timing calibrations of the software subroutines.
+   % \vspace{0.5cm}
+%\begin{figure}[h!]
+    %\centering
+    % --- PLACEHOLDER FOR CIRCUIT DIAGRAM ---
+    % Instructions: Save your circuit diagram image as 'circuit_diagram.png' 
+    % in your project folder, then uncomment the line below.
+    % \includegraphics[width=0.8\textwidth]{circuit_diagram.png}
+    %\centering
+   % \framebox{\begin{minipage}{0.8\textwidth}
+       % \centering
+        %\vspace{3cm}
+       %% \textbf{[ Insert Arduino Uno Breadboard Circuit Diagram Here ]}
+        %\small\\ (Include pin connections for the clock display, buttons, and crystal oscillator)
+        %\vspace{3cm}
+   % \end{minipage}}
+    %\caption{Complete Electrical Schematic and Breadboard Connection Diagram for the Arduino Uno Prototype.}
+   % \label{fig:circuit_diagram}
+%\end{figure}
+\vspace{0.5cm}
+\end{itemize}
+
+\section{Bootloader Flashing \& Firmware Upload (ATmega328P Chip)}
+To migrate the design to a production-ready standalone state, the ATmega328P microchip was decoupled from the Arduino ecosystem using In-System Programming (ISP):
+\begin{enumerate}
+    \item \textbf{Arduino as ISP Configuration:} The primary Arduino Uno was loaded with the standard \texttt{ArduinoISP} sketch.
+    \item \textbf{Target Wiring:} Target ATmega328P connections were established via SPI pins (MISO, MOSI, SCK, RESET, VCC, and GND).
+    \item \textbf{Burning the Bootloader:} The standard bootloader was flashed via the Arduino IDE to configure internal fuses for the external 16 MHz crystal.
+    \item \textbf{Code Deployment:} The final production firmware was successfully uploaded directly to the IC.
+\end{enumerate}
+
+\section{Perfboard Assembly and Backside Wiring}
+Following successful firmware verification, the components were transferred onto a permanent perfboard matrix.
+
+\subsection{Soldering and Component Layout}
+Components were optimized for space constraints within the ultimate enclosure footprint. Low-profile elements were soldered first, followed by structural sockets and connectors.
+
+\subsection{Backside Wire Routing}
+The backside point-to-point connections were executed cleanly to prevent cross-talk, short circuits, or cold solder joints.
+
+\vspace{1cm}
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{digiClock.jpeg}
+            \vspace{0.5cm}
+        \caption{Component Side Layout}
+        \label{fig:perfboard_top}
+    \end{subfigure}% 
+    \hfill 
+    \begin{subfigure}[b]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{digiClock1.jpeg}
+         \vspace{0.5cm}
+        \caption{Backside Solder \& Wiring}
+        \label{fig:perfboard_wiring}
+    \end{subfigure}
+    \caption{Assembled Perfboard: Top Component View (left) and Backside Wire Routing Matrix (right).}
+    \label{fig:perfboard_combined}
+\end{figure}
+\newpage
+\section{Industrial Design: CAD Model \& 3D Printed Clock Cover}
+To protect the electronics and deliver a polished consumer product aesthetic, a custom mechanical enclosure was designed.
+
+\subsection{CAD Modeling}
+Using precise digital caliper measurements of the finished perfboard assembly, an enclosure shell with tight tolerances was drafted. The design includes mounting bosses, access cutouts for power interfaces, and specific clearings for display components.
+
+\subsection{3D Printing Production}
+The structural files were sliced and exported to a 3D printer for additive manufacturing.
+
+\vspace{1cm}
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{digi_clock.png}
+            %\vspace{0.5cm}
+        %\caption{Component Side Layout}
+        \label{fig:perfboard_top}
+    \end{subfigure}% 
+    \hfill 
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{d_bottom.png}
+         %\vspace{0.5cm}
+        %\caption{Backside Solder \& Wiring}
+        \label{fig:perfboard_wiring}
+    \end{subfigure}
+    %\caption{Assembled Perfboard: Top Component View (left) and Backside Wire Routing Matrix (right).}
+    \label{fig:perfboard_combined}
+
+        \vspace{0.5cm}
+    \caption{Render of the Final 3D Printed Clock Cover Enclosure.}
+    \label{fig:cad_model}
+\end{figure}
+%\newpage
+\vspace{0.5cm}
+
+\section{Source Code and Repository Access}
+The complete codebase, configuration scripts, and open-source design files for this digital clock are maintained under version control.
+
+The firmware updates, schematics, and subsequent revisions can be accessed directly at the project repository:
+
+\vspace{0.5cm}
+\centering
+\noindent\url{https://github.com/Anshita9/internship/Digital_clock} % <-- REPLACE THIS URL WITH YOUR LINK
+\vspace{0.5cm}
+
+\end{document}
