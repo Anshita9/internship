@@ -7,6 +7,16 @@
 #define DEBUG 0
 
 double PI;
+int math_initialized = 0;
+
+void ensure_math_init()
+{
+    if (!math_initialized)
+    {
+        math_init();
+        math_initialized = 1;
+    }
+}
 
 typedef void (*sys_f)(double t, double *y, double *dy, void *ctx);
 
@@ -60,7 +70,7 @@ void d_pow(double t, double *y, double *dy, void *ctx) {
 // my funcs
 
 float Q_sqrt(float n) {
-    long i; float x2, y; const float th = 1.5F;
+    uint32_t; float x2, y; const float th = 1.5F;
     x2 = n * 0.5F; y = n;
     i = * ( long * ) &y;
     i = 0x5f3759df - ( i >> 1 );
@@ -90,30 +100,83 @@ double m_atan(double x) {
     solve(0,x,y,1,d_atan,NULL);
     return y[0];
 }
-void math_init() {
+void math_init()
+{
     PI = 4.0 * m_atan(1.0);
+
 }
-double m_asin(double x) {
-    if (m_abs(x) > 1.0 ) return 0.0/0.0;
-    if (m_abs(x-1.0) <= 1e-9) return PI/2;
-    if (m_abs(x+1.0) <= 1e-9) return -PI/2;
-    return m_atan(x*Q_sqrt((float)(1.0 - x*x)));
+double m_asin(double x)
+{
+    ensure_math_init();
+
+    if (m_abs(x) > 1.0)
+        return 0.0 / 0.0;
+
+    if (m_abs(x - 1.0) < 1e-12)
+        return PI / 2.0;
+
+    if (m_abs(x + 1.0) < 1e-12)
+        return -PI / 2.0;
+
+    return m_atan(x * Q_sqrt((float)(1.0 - x * x)));
 }
-double m_acos(double x) {
-    return PI/2 - m_asin(x);
+double m_acos(double x)
+{
+    ensure_math_init();
+    return PI / 2.0 - m_asin(x);
 }
 double m_exp(double x) {
     double y[1] = {1.0};
     solve (0,x,y,1,d_exp,NULL);
     return y[0];
 }
-double m_sin(double x) {
-    double y[2] = {0, 1}; // y=0, z=1
-    solve(0, x, y, 2, d_sin, NULL);
+double m_sin(double x)
+{
+    ensure_math_init();
+
+    while (x > PI)
+        x -= 2.0 * PI;
+
+    while (x < -PI)
+        x += 2.0 * PI;
+
+    double y[2] = {0.0, 1.0};
+
+    solve(0.0, x, y, 2, d_sin, NULL);
+
+    return y[0];
+
+}
+double m_cos(double x)
+{
+    ensure_math_init();
+
+    while (x > PI)
+        x -= 2.0 * PI;
+
+    while (x < -PI)
+        x += 2.0 * PI;
+
+    double y[2] = {1.0, 0.0};
+
+    solve(0.0, x, y, 2, d_sin, NULL);
+
     return y[0];
 }
-double m_cos(double x) { return m_sin(PI/2 - x); }
-double m_tan(double x) { return m_sin(x) / m_cos(x); } //y' = y^2+1, do this once. rn this is 4x more computations than normal!
+double m_tan(double x)
+{
+    double c = m_cos(x);
+
+    if (m_abs(c) < 1e-12)
+    {
+        if (m_sin(x) >= 0)
+            return 1.0 / 0.0;
+        else
+            return -1.0 / 0.0;
+    }
+
+    return m_sin(x) / c;
+} //y' = y^2+1, do this once. rn this is 4x more computations than normal!
 
 double m_ln(double x) {
     if (x <= 0) return -1.0/0.0;
